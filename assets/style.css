@@ -54,7 +54,7 @@ a,button,[role=button],input,select,textarea{cursor:pointer}
 input,textarea{cursor:text}
 .site-header,.hero,.section,.contact-band,.project-card,.job,.lead-card,.cert-card,.post-card,.highlight-card,.now-list>div,.quick-stats>div,.contact-band .button{--card-glow:rgba(var(--glow-rgb),.16)}
 .project-card:hover,.job:hover,.lead-card:hover,.cert-card:hover,.post-card:hover,.highlight-card:hover,.now-list>div:hover,.quick-stats>div:hover{box-shadow:0 0 0 1px rgba(var(--glow-rgb),.28),0 0 28px var(--card-glow),0 16px 48px #0003}
-.nav a,.button,.site-tool,.filter-chip,.project-links a,.social-row a{transition:color .2s,background .2s,border-color .2s,box-shadow .2s,transform .2s}
+.nav a,.button,.site-tool,.filter-chip,.project-links a,.social-row a{transition:color .2s,background .2s,border-color .2s,box-shadow .2s,transform .2s,translate .15s}
 .nav a:hover,.project-links a:hover,.social-row a:hover{color:var(--lime);text-shadow:0 0 15px rgba(var(--glow-rgb),.5)}
 .button:hover,.site-tool:hover,.filter-chip:hover{box-shadow:0 0 24px rgba(var(--glow-rgb),.22)}
 .hero-art .orbit{transition:filter .4s,transform .4s}
