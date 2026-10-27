@@ -111,4 +111,35 @@ projectSearch?.addEventListener('input',applyProjectFilter);
   link.addEventListener('pointerdown',()=>link.classList.add('is-pressed'));
   ['pointerup','pointerleave','blur'].forEach(type=>link.addEventListener(type,()=>link.classList.remove('is-pressed')));
  });
+
+ /* Theme-matched cursor with a glowing aura and lightweight fading trail. */
+ const finePointer=window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+ const reduceMotion=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+ if(finePointer&&!reduceMotion){
+  const aura=document.createElement('div');aura.className='cursor-aura';aura.setAttribute('aria-hidden','true');document.body.append(aura);
+  let lastTrail=0,mouseX=-100,mouseY=-100;
+  document.addEventListener('pointermove',e=>{
+   if(e.pointerType==='touch')return;
+   mouseX=e.clientX;mouseY=e.clientY;
+   document.body.style.setProperty('--pointer-x',mouseX+'px');
+   document.body.style.setProperty('--pointer-y',mouseY+'px');
+   document.body.classList.add('pointer-active');
+   aura.style.transform='translate('+mouseX+'px,'+mouseY+'px) translate(-50%,-50%)';
+   const now=performance.now();
+   if(now-lastTrail>34){
+    const dot=document.createElement('span');dot.className='cursor-trail';
+    dot.style.left=mouseX+'px';dot.style.top=mouseY+'px';
+    const size=2+Math.random()*4;dot.style.width=size+'px';dot.style.height=size+'px';
+    document.body.append(dot);dot.addEventListener('animationend',()=>dot.remove(),{once:true});lastTrail=now;
+   }
+  },{passive:true});
+  document.addEventListener('pointerover',e=>{
+   if(e.target.closest('a,button,[role=button],input,textarea,select,.project-card,.job,.lead-card,.cert-card,.post-card,.highlight-card'))document.body.classList.add('cursor-hover');
+  });
+  document.addEventListener('pointerout',e=>{
+   if(e.target.closest('a,button,[role=button],input,textarea,select,.project-card,.job,.lead-card,.cert-card,.post-card,.highlight-card')&&!e.relatedTarget?.closest('a,button,[role=button],input,textarea,select,.project-card,.job,.lead-card,.cert-card,.post-card,.highlight-card'))document.body.classList.remove('cursor-hover');
+  });
+  document.addEventListener('pointerleave',()=>document.body.classList.remove('pointer-active','cursor-hover'));
+  document.addEventListener('pointerenter',()=>document.body.classList.add('pointer-active'));
+ }
 })();
