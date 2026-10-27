@@ -397,3 +397,22 @@ body.soft-light .pv-flow span{background:#f8fbf3;color:#435c25;border-color:#bdc
 body.soft-light .pv-donut::after{background:#f4f7ee;border-color:#d5e0c8}
 @media(max-width:640px){.back-to-top{right:13px;bottom:14px;padding:9px 11px}.site-toast{bottom:14px;font-size:10px}.copy-email{min-height:32px}}
 @media(prefers-reduced-motion:reduce){.back-to-top,.site-toast{transition:none;transform:none}}
+
+/* Final content-page polish */
+.project-card .project-visual+h3{margin-top:0}
+.not-found{min-height:min(78vh,800px);display:grid;align-items:center;padding:80px 0}
+.not-found-visual{position:relative;overflow:hidden;max-width:880px;margin:0 auto;width:100%;padding:clamp(28px,7vw,80px);border:1px solid var(--line);background:linear-gradient(135deg,#1b1e16,#11130f);box-shadow:0 30px 90px #0003;isolation:isolate}
+.not-found-visual::before{content:"404";position:absolute;z-index:-1;right:-.03em;top:-.22em;font-size:clamp(180px,35vw,420px);font-weight:800;letter-spacing:-.12em;line-height:1;color:rgba(var(--glow-rgb),.045);pointer-events:none}
+.not-found-visual h1{font-size:clamp(54px,9vw,112px);line-height:.91;letter-spacing:-.085em;margin:28px 0}
+.not-found-visual h1 em{font-style:normal;color:transparent;-webkit-text-stroke:1px var(--lime)}
+.not-found-visual>p{max-width:520px;color:var(--muted);font-size:15px;line-height:1.9}
+.not-found-signal{display:flex;align-items:center;gap:13px;border-top:1px solid var(--line);margin-top:52px;padding-top:18px;font:10px var(--mono);letter-spacing:.08em;color:var(--muted)}
+.not-found-signal strong{color:var(--lime);font-weight:400}
+.signal-lights{display:inline-flex;gap:4px;margin-left:auto}
+.signal-lights i{width:5px;height:5px;border-radius:50%;background:var(--lime);opacity:.3}
+.signal-lights i:first-child{opacity:1;box-shadow:0 0 8px var(--lime)}
+body.soft-light .not-found-visual{background:linear-gradient(135deg,#fff,#f1f5e8);border-color:#d1dac4;box-shadow:0 25px 70px #35431b12}
+body.soft-light .not-found-visual h1 em{color:#668f00;-webkit-text-stroke:0}
+body.soft-light .not-found-visual>p{color:#535d48}
+body.soft-light .not-found-signal strong{color:#527700}
+@media(max-width:540px){.not-found{padding:45px 0;min-height:72vh}.not-found-visual{padding:25px 21px}.not-found-signal{font-size:8px;gap:8px;margin-top:36px}}
