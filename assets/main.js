@@ -160,7 +160,7 @@ projectSearch?.addEventListener('input',applyProjectFilter);
  counters.forEach(el=>counterObserver?counterObserver.observe(el):animateCounter(el));
  const hoverTargets=document.querySelectorAll('.project-card,.job,.lead-card,.cert-card,.post-card,.highlight-card,.now-list>div,.quick-stats>div,.contact-band,.hero-art .orbit,.cert-group');
  const finePointerForCards=window.matchMedia('(hover:hover) and (pointer:fine)').matches;
- if(finePointerForCards&&!reduceMotion){
+ if(finePointerForCards&&!window.matchMedia('(prefers-reduced-motion: reduce)').matches){
   hoverTargets.forEach(card=>{
    card.classList.add('pointer-reactive');
    card.addEventListener('pointermove',e=>{
