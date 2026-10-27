@@ -172,7 +172,7 @@ projectSearch?.addEventListener('input',applyProjectFilter);
  function openCardDetails(card){
   detailContent.replaceChildren();
   const kicker=card.querySelector('.project-number,.post-meta,.job-date,.kicker');
-  const title=card.querySelector('h3');
+  const title=card.querySelector('h3')||card.querySelector('strong')||card.querySelector('small');
   const org=card.querySelector('.org');
   if(kicker){const el=document.createElement('p');el.className='detail-kicker';el.textContent=kicker.textContent.trim();detailContent.append(el);}
   if(title){const el=document.createElement('h2');el.textContent=title.textContent.trim();detailContent.append(el);}
@@ -185,7 +185,7 @@ projectSearch?.addEventListener('input',applyProjectFilter);
   if(!title&&!kicker){const text=document.createElement('p');text.textContent='Portfolio detail';detailContent.append(text);}
   detailModal.showModal();
  }
- document.querySelectorAll('.project-card,.job,.lead-card,.cert-card,.post-card,.highlight-card').forEach(card=>{
+ document.querySelectorAll('.project-card,.job,.lead-card,.cert-card,.post-card,.highlight-card,.now-list>div').forEach(card=>{
   const title=card.querySelector('h3')?.textContent||card.querySelector('strong')?.textContent||'Portfolio item';
   card.setAttribute('tabindex','0');card.setAttribute('role','group');
   card.setAttribute('aria-label','Open details: '+title);
@@ -223,7 +223,7 @@ projectSearch?.addEventListener('input',applyProjectFilter);
  };
  const counterObserver=('IntersectionObserver'in window)?new IntersectionObserver(entries=>entries.forEach(e=>{if(e.isIntersecting){animateCounter(e.target);counterObserver.unobserve(e.target);}}),{threshold:.65}):null;
  counters.forEach(el=>counterObserver?counterObserver.observe(el):animateCounter(el));
- const hoverTargets=document.querySelectorAll('.project-card,.job,.lead-card,.cert-card,.post-card,.highlight-card,.now-list>div,.quick-stats>div,.contact-band,.hero-art .orbit,.cert-group');
+ const hoverTargets=document.querySelectorAll('.project-card,.job,.lead-card,.cert-card,.post-card,.highlight-card,.now-list>div,.quick-stats>div,.contact-band,.hero-art .profile-panel,.cert-group');
  const finePointerForCards=window.matchMedia('(hover:hover) and (pointer:fine)').matches;
  if(finePointerForCards&&!window.matchMedia('(prefers-reduced-motion: reduce)').matches){
   hoverTargets.forEach(card=>{
