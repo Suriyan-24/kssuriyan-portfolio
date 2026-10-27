@@ -78,11 +78,15 @@ projectSearch?.addEventListener('input',applyProjectFilter);
  });
  document.addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='k'){e.preventDefault();openPalette();}});
  const themeButton=document.querySelector('#theme-toggle');
+ const savedTheme=(()=>{try{return localStorage.getItem('portfolio-theme');}catch(_){return null;}})();
+ if(savedTheme==='light')body.classList.add('soft-light');
+ function updateThemeButton(){if(themeButton){const light=body.classList.contains('soft-light');themeButton.textContent=light?'☼':'◐';themeButton.setAttribute('aria-label',light?'Switch to dark theme':'Switch to soft light theme');}}
+ updateThemeButton();
  if(themeButton){
   themeButton.addEventListener('click',()=>{
    const light=body.classList.toggle('soft-light');
-   themeButton.textContent=light?'☼':'◐';
-   themeButton.setAttribute('aria-label',light?'Switch to dark theme':'Switch to soft light theme');
+   try{localStorage.setItem('portfolio-theme',light?'light':'dark');}catch(_){}
+   updateThemeButton();
   });
  }
  let scheduled=false;
@@ -93,25 +97,94 @@ projectSearch?.addEventListener('input',applyProjectFilter);
  }
  window.addEventListener('scroll',()=>{if(!scheduled){window.requestAnimationFrame(updateProgress);scheduled=true;}},{passive:true});
  updateProgress();
- document.querySelectorAll('.project-card,.job,.lead-card,.cert-card,.post-card').forEach(card=>{
-  card.setAttribute('tabindex','0');
-  card.setAttribute('role','button');
-  card.setAttribute('aria-label','Expand details: '+(card.querySelector('h3')?.textContent||'portfolio item'));
-  const toggle=()=>{
-   const expanded=card.classList.toggle('details-expanded');
-   card.setAttribute('aria-expanded',String(expanded));
-  };
-  card.addEventListener('click',e=>{
-   if(e.target.closest('a,button,input'))return;
-   toggle();
-  });
-  card.addEventListener('keydown',e=>{if((e.key==='Enter'||e.key===' ')&&e.target===card){e.preventDefault();toggle();}});
+ /* Rich case-study modal for cards across Projects, Experience, Posts, and Certifications. */
+ const detailModal=document.createElement('dialog');
+ detailModal.className='detail-modal';
+ detailModal.setAttribute('aria-label','Portfolio item details');
+ detailModal.innerHTML='<div class="detail-modal-inner"><div class="detail-modal-head"><span class="detail-eyebrow">PORTFOLIO / DETAILS</span><button type="button" class="detail-close" aria-label="Close details">ESC ✕</button></div><div class="detail-modal-content"></div></div>';
+ document.body.append(detailModal);
+ const detailContent=detailModal.querySelector('.detail-modal-content');
+ function openCardDetails(card){
+  detailContent.replaceChildren();
+  const kicker=card.querySelector('.project-number,.post-meta,.job-date,.kicker');
+  const title=card.querySelector('h3');
+  const org=card.querySelector('.org');
+  if(kicker){const el=document.createElement('p');el.className='detail-kicker';el.textContent=kicker.textContent.trim();detailContent.append(el);}
+  if(title){const el=document.createElement('h2');el.textContent=title.textContent.trim();detailContent.append(el);}
+  if(org){const el=document.createElement('p');el.className='detail-org';el.textContent=org.textContent.trim();detailContent.append(el);}
+  card.querySelectorAll('p').forEach(p=>{if(!p.closest('.detail-modal')&&!p.classList.contains('project-note')&&!p.classList.contains('job-type')){const el=document.createElement('p');el.className='detail-description';el.textContent=p.textContent.trim();detailContent.append(el);}});
+  const tags=card.querySelector('.tags');
+  if(tags){const clone=tags.cloneNode(true);clone.classList.add('detail-tags');detailContent.append(clone);}
+  const links=[...card.querySelectorAll('a[href]')];
+  if(links.length){const actions=document.createElement('div');actions.className='detail-actions';links.forEach(link=>{const a=link.cloneNode(true);a.target=link.target||'_blank';if(a.target==='_blank')a.rel='noreferrer';actions.append(a);});detailContent.append(actions);}
+  if(!title&&!kicker){const text=document.createElement('p');text.textContent='Portfolio detail';detailContent.append(text);}
+  detailModal.showModal();
+ }
+ document.querySelectorAll('.project-card,.job,.lead-card,.cert-card,.post-card,.highlight-card').forEach(card=>{
+  const title=card.querySelector('h3')?.textContent||card.querySelector('strong')?.textContent||'Portfolio item';
+  card.setAttribute('tabindex','0');card.setAttribute('role','group');
+  card.setAttribute('aria-label','Open details: '+title);
+  card.classList.add('interactive-card');
+  card.addEventListener('click',e=>{if(e.target.closest('a,button,input,select,textarea'))return;openCardDetails(card);});
+  card.addEventListener('keydown',e=>{if((e.key==='Enter'||e.key===' ')&&e.target===card){e.preventDefault();openCardDetails(card);}});
  });
+ detailModal.querySelector('.detail-close').addEventListener('click',()=>detailModal.close());
+ detailModal.addEventListener('click',e=>{if(e.target===detailModal)detailModal.close();});
  document.querySelectorAll('.nav a,.button,.highlight-card,.project-links a,.social-row a').forEach(link=>{
   link.addEventListener('pointerdown',()=>link.classList.add('is-pressed'));
   ['pointerup','pointerleave','blur'].forEach(type=>link.addEventListener(type,()=>link.classList.remove('is-pressed')));
  });
 
+ /* Scroll storytelling, counters, magnetic actions and 3D pointer-reactive cards. */
+ const scrollRevealObserver=('IntersectionObserver'in window)?new IntersectionObserver(entries=>entries.forEach(entry=>{
+  if(entry.isIntersecting){entry.target.classList.add('revealed');scrollRevealObserver.unobserve(entry.target);}
+ }),{threshold:.12}):null;
+ document.querySelectorAll('.reveal,.job,.lead-card,.cert-card,.post-card,.project-card,.highlight-card').forEach((el,i)=>{
+  el.style.setProperty('--reveal-delay',(i%4)*65+'ms');
+  if(scrollRevealObserver)scrollRevealObserver.observe(el);else el.classList.add('revealed');
+ });
+ const counters=[...document.querySelectorAll('.quick-stats b')];
+ const animateCounter=(el)=>{
+  if(el.dataset.counted)return;
+  el.dataset.counted='true';
+  const node=[...el.childNodes].find(n=>n.nodeType===Node.TEXT_NODE);
+  if(!node)return;
+  const original=node.textContent.trim();
+  const match=original.match(/^([\d.]+)(K)?$/i);if(!match)return;
+  const target=Number(match[1]);const suffix=match[2]?'K':'';
+  const start=performance.now(),duration=1050;
+  const tick=now=>{const p=Math.min(1,(now-start)/duration),ease=1-Math.pow(1-p,3);node.textContent=(suffix?(target*ease).toFixed(target%1?1:0):Math.round(target*ease))+suffix;if(p<1)requestAnimationFrame(tick);};
+  requestAnimationFrame(tick);
+ };
+ const counterObserver=('IntersectionObserver'in window)?new IntersectionObserver(entries=>entries.forEach(e=>{if(e.isIntersecting){animateCounter(e.target);counterObserver.unobserve(e.target);}}),{threshold:.65}):null;
+ counters.forEach(el=>counterObserver?counterObserver.observe(el):animateCounter(el));
+ const hoverTargets=document.querySelectorAll('.project-card,.job,.lead-card,.cert-card,.post-card,.highlight-card,.now-list>div,.quick-stats>div,.contact-band,.hero-art .orbit,.cert-group');
+ const finePointerForCards=window.matchMedia('(hover:hover) and (pointer:fine)').matches;
+ if(finePointerForCards&&!reduceMotion){
+  hoverTargets.forEach(card=>{
+   card.classList.add('pointer-reactive');
+   card.addEventListener('pointermove',e=>{
+    if(e.pointerType!=='mouse'&&e.pointerType!=='pen')return;
+    const r=card.getBoundingClientRect(),x=e.clientX-r.left,y=e.clientY-r.top;
+    const px=(x/r.width-.5),py=(y/r.height-.5);
+    card.style.setProperty('--glow-x',x+'px');card.style.setProperty('--glow-y',y+'px');
+    if(card.matches('.project-card,.lead-card,.highlight-card')){
+     card.style.setProperty('--tilt-x',(-py*3.2).toFixed(2)+'deg');
+     card.style.setProperty('--tilt-y',(px*3.8).toFixed(2)+'deg');
+    }
+   },{passive:true});
+   card.addEventListener('pointerleave',()=>{card.style.setProperty('--tilt-x','0deg');card.style.setProperty('--tilt-y','0deg');});
+  });
+  document.querySelectorAll('.button.primary,.button.dark-button,.nav-cta,.site-tool,.contact-row .button').forEach(button=>{
+   if(button.matches('input'))return;
+   button.addEventListener('pointermove',e=>{
+    if(e.pointerType!=='mouse')return;
+    const r=button.getBoundingClientRect(),dx=e.clientX-(r.left+r.width/2),dy=e.clientY-(r.top+r.height/2);
+    button.style.translate=(dx*.10).toFixed(1)+'px '+(dy*.13).toFixed(1)+'px';
+   },{passive:true});
+   button.addEventListener('pointerleave',()=>{button.style.translate='0px 0px';});
+  });
+ }
  /* Theme-matched cursor with a glowing aura and lightweight fading trail. */
  const finePointer=window.matchMedia('(hover: hover) and (pointer: fine)').matches;
  const reduceMotion=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
