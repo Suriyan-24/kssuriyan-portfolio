@@ -326,3 +326,20 @@ body.soft-light .pv-pulse,body.soft-light .pv-ui-status{color:#587b00}
 body.soft-light .pv-radar{border-color:#9ab479}
 @media(max-width:540px){.project-visual{height:120px;margin:20px 0 17px}.pv-radar-large{width:86px;height:86px}}
 @media(prefers-reduced-motion:reduce){.project-visual::before,.pv-wave i,.pv-radar b,.pv-waterline i{animation:none;transition:none}.project-card:hover .project-visual{transform:none}}
+
+/* Keep the floating hero controls clear of the photograph at every breakpoint. */
+@media(min-width:541px){
+ .chip-java{top:0;right:-16%}
+ .chip-build{left:-18%;bottom:17%}
+ .chip-ai{right:-18%;bottom:6%}
+}
+@media(max-width:540px){
+ .hero-art{min-height:0;padding-bottom:8px}
+ .profile-visual{height:auto;min-height:0;padding:28px 0 12px;display:flex;flex-wrap:wrap;align-content:center;align-items:center;justify-content:center;gap:8px}
+ .profile-panel{position:relative;flex:0 0 244px;width:244px;max-width:none;margin:0 0 8px;transform:none!important}
+ .hero-chip{position:relative;inset:auto;min-height:34px;flex:0 0 auto;margin:0}
+ .visual-coordinate{position:relative;left:auto;bottom:auto;width:100%;display:block;text-align:center;margin-top:5px}
+ .visual-ring-one{width:88%}.visual-ring-two{width:69%}
+ .hero-particles{inset:0}
+ .art-caption{position:relative;display:block;bottom:auto;left:auto;text-align:center;margin-top:0}
+}
