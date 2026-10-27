@@ -383,4 +383,44 @@ projectSearch?.addEventListener('input',applyProjectFilter);
    })
   });
  }
+
+ /* Useful site-wide utilities: copy contact, back-to-top, and active section awareness. */
+ const topButton=document.createElement('button');
+ topButton.type='button';topButton.className='back-to-top';topButton.innerHTML='<span>↑</span><span>TOP</span>';topButton.setAttribute('aria-label','Scroll back to top');
+ document.body.append(topButton);
+ const toast=document.createElement('div');toast.className='site-toast';toast.setAttribute('role','status');toast.setAttribute('aria-live','polite');document.body.append(toast);
+ let toastTimer=0;
+ function showToast(message){toast.textContent=message;toast.classList.add('show');window.clearTimeout(toastTimer);toastTimer=window.setTimeout(()=>toast.classList.remove('show'),2200);}
+ const copyEmailButton=document.createElement('button');copyEmailButton.type='button';copyEmailButton.className='copy-email';copyEmailButton.textContent='COPY EMAIL ↗';copyEmailButton.setAttribute('aria-label','Copy email address');
+ document.querySelectorAll('.social-row').forEach(row=>{if(!row.querySelector('.copy-email'))row.append(copyEmailButton.cloneNode(true));});
+ async function copyEmail(button){
+  const email='suriyankumaresan@gmail.com';
+  try{await navigator.clipboard.writeText(email);showToast('Email copied — '+email);button.textContent='COPIED ✓';}
+  catch(_){
+   const field=document.createElement('textarea');field.value=email;field.setAttribute('readonly','');field.style.position='fixed';field.style.opacity='0';document.body.append(field);field.select();
+   let ok=false;try{ok=document.execCommand('copy');}catch(__){}
+   field.remove();showToast(ok?'Email copied — '+email:'Email: '+email);button.textContent=ok?'COPIED ✓':'EMAIL SHOWN';
+  }
+  window.setTimeout(()=>{button.textContent='COPY EMAIL ↗';},1800);
+ }
+ document.querySelectorAll('.copy-email').forEach(button=>button.addEventListener('click',()=>copyEmail(button)));
+ let topShown=false;
+ function syncFloatingUtilities(){
+  const show=window.scrollY>420;
+  if(show!==topShown){topShown=show;topButton.classList.toggle('shown',show);}
+ }
+ topButton.addEventListener('click',()=>window.scrollTo({top:0,behavior:window.matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'}));
+ window.addEventListener('scroll',syncFloatingUtilities,{passive:true});syncFloatingUtilities();
+ const sections=[...document.querySelectorAll('main section[id]')];
+ if(sections.length&&'IntersectionObserver'in window){
+  const sectionObserver=new IntersectionObserver(entries=>{
+   entries.forEach(entry=>{
+    if(entry.isIntersecting){
+     const id=entry.target.id;
+     document.querySelectorAll('.nav a[href^="#"]').forEach(a=>a.classList.toggle('active',a.getAttribute('href')==='#'+id));
+    }
+   });
+  },{rootMargin:'-25% 0px -60% 0px',threshold:0});
+  sections.forEach(section=>sectionObserver.observe(section));
+ }
 })();
