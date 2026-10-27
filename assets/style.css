@@ -91,3 +91,55 @@ body.soft-light .tags .tag{background:#f4f7ee;color:#424b36;border-color:#d4dbc8
 body.soft-light .reading-progress{background:#668f00;box-shadow:0 0 12px #668f0040}
 @media(hover:none),(pointer:coarse){.cursor-aura,.cursor-trail{display:none}body::before{display:none}}
 @media(prefers-reduced-motion:reduce){.cursor-aura,.cursor-trail{display:none}body::before{display:none}*{scroll-behavior:auto!important;animation-duration:.01ms!important;transition-duration:.01ms!important}}
+
+/* Pointer-reactive motion and project detail overlays, inspired by modern motion-led portfolios. */
+.project-card,.lead-card,.highlight-card{transform:perspective(1000px) rotateX(var(--tilt-x,0deg)) rotateY(var(--tilt-y,0deg)) translateY(0);transform-style:preserve-3d;will-change:transform}
+.project-card:hover,.lead-card:hover,.highlight-card:hover{transform:perspective(1000px) rotateX(var(--tilt-x,0deg)) rotateY(var(--tilt-y,0deg)) translateY(-4px)}
+.pointer-reactive{position:relative;isolation:isolate}
+.pointer-reactive::before{content:"";position:absolute;inset:0;z-index:0;pointer-events:none;opacity:0;background:radial-gradient(420px circle at var(--glow-x,50%) var(--glow-y,50%),rgba(var(--glow-rgb),.13),transparent 54%);transition:opacity .25s}
+.pointer-reactive:hover::before{opacity:1}
+.pointer-reactive>*{position:relative;z-index:1}
+.project-card.pointer-reactive::after,.lead-card.pointer-reactive::after,.highlight-card.pointer-reactive::after{content:"";position:absolute;inset:0;pointer-events:none;border-radius:inherit;border:1px solid rgba(var(--glow-rgb),0);transition:border-color .25s;z-index:2}
+.project-card.pointer-reactive:hover::after,.lead-card.pointer-reactive:hover::after,.highlight-card.pointer-reactive:hover::after{border-color:rgba(var(--glow-rgb),.24)}
+.interactive-card{outline-offset:4px}
+.interactive-card:focus-visible{outline:2px solid var(--lime)}
+.detail-modal{padding:0;width:min(720px,calc(100% - 28px));max-height:min(82vh,760px);overflow:auto;border:1px solid rgba(var(--glow-rgb),.45);background:#151610;color:var(--ink);box-shadow:0 40px 120px #000b}
+.detail-modal::backdrop{background:rgba(3,4,2,.78);backdrop-filter:blur(9px)}
+.detail-modal-inner{padding:clamp(20px,4vw,38px)}
+.detail-modal-head{display:flex;align-items:center;justify-content:space-between;gap:20px;border-bottom:1px solid var(--line);padding-bottom:16px}
+.detail-eyebrow,.detail-kicker{font:10px var(--mono);letter-spacing:.13em;text-transform:uppercase;color:var(--lime)}
+.detail-close{background:transparent;color:var(--muted);border:1px solid var(--line);padding:9px 11px;cursor:pointer;font:10px var(--mono)}
+.detail-close:hover{color:var(--ink);border-color:var(--lime);box-shadow:0 0 18px rgba(var(--glow-rgb),.14)}
+.detail-modal-content{padding-top:24px}
+.detail-modal-content h2{font-size:clamp(30px,5vw,48px);line-height:1.05;letter-spacing:-.06em;margin:10px 0 12px}
+.detail-org{color:var(--lime);font-size:13px;margin:8px 0 18px}
+.detail-description{color:#b9bdae;line-height:1.9;font-size:14px;max-width:65ch}
+.detail-tags{display:flex;gap:8px;flex-wrap:wrap;margin-top:20px}
+.detail-actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:26px;padding-top:20px;border-top:1px solid var(--line)}
+.detail-actions a{display:inline-flex;align-items:center;min-height:40px;padding:10px 13px;border:1px solid var(--line);color:var(--lime);font:10px var(--mono);text-decoration:none}
+.detail-actions a:hover{background:var(--lime);color:#111;border-color:var(--lime)}
+.detail-modal[open]{animation:detail-enter .22s ease both}
+@keyframes detail-enter{from{opacity:0;transform:translateY(12px) scale(.985)}to{opacity:1;transform:translateY(0) scale(1)}}
+.reveal{transition-delay:var(--reveal-delay,0ms)}
+body.soft-light .detail-modal{background:#fbfcf7;color:#20251a;border-color:#9dbb65;box-shadow:0 35px 100px #1d290d35}
+body.soft-light .detail-modal::backdrop{background:#26321b66}
+body.soft-light .detail-modal-head,body.soft-light .detail-actions{border-color:#d6ddcb}
+body.soft-light .detail-kicker,body.soft-light .detail-eyebrow{color:#587b00}
+body.soft-light .detail-description{color:#48513f}
+body.soft-light .detail-org{color:#587b00}
+body.soft-light .detail-close,body.soft-light .detail-actions a{background:#fff;color:#39432e;border-color:#d1dac4}
+body.soft-light .detail-close:hover,body.soft-light .detail-actions a:hover{background:#668f00;border-color:#668f00;color:white}
+body.soft-light .site-tools .site-tool{box-shadow:0 4px 14px #3e4b2510}
+body.soft-light .hero h1 em,body.soft-light .section-head h2 em,body.soft-light .contact-row h2 em{-webkit-text-stroke:0;color:#668f00}
+body.soft-light .eyebrow,body.soft-light .kicker,body.soft-light .card-index,body.soft-light .card-link,body.soft-light .art-caption,body.soft-light .hero-foot,body.soft-light .footer,body.soft-light .social-row,body.soft-light .job-date,body.soft-light .job-type,body.soft-light .tag,body.soft-light .section-number{color:#5a664c}
+body.soft-light .card-link,body.soft-light .project-links a{color:#527600}
+body.soft-light .project-symbol{border-color:#cbd6bb;color:#547a00;background:#f6f9ef}
+body.soft-light .orbit-label{background:#fff;border-color:#d1dbc2;color:#38432c}
+body.soft-light .quick-stats b span{color:#668f00}
+body.soft-light .orbit{background:radial-gradient(circle at 45% 40%,#8bbd0012,transparent 65%);border-color:#d2dbc6}
+body.soft-light .orbit-ring{border-color:#bcc7ad}
+body.soft-light .highlight-card,.soft-light .project-card,.soft-light .cert-card,.soft-light .post-card,.soft-light .lead-card{box-shadow:0 8px 24px #35431b0a}
+body.soft-light .hero-copy p strong{color:#20251a}
+@media(max-width:760px){.project-card,.lead-card,.highlight-card{transform:none!important;will-change:auto}.detail-modal-inner{padding:20px}}
+@media(hover:none),(pointer:coarse){.pointer-reactive::before{display:none}.project-card,.lead-card,.highlight-card{transform:none!important}}
+@media(prefers-reduced-motion:reduce){.project-card,.lead-card,.highlight-card{transform:none!important;will-change:auto}.detail-modal[open]{animation:none}.reveal{transition-delay:0ms}}
