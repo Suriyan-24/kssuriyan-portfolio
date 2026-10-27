@@ -289,4 +289,98 @@ projectSearch?.addEventListener('input',applyProjectFilter);
   document.addEventListener('pointerleave',()=>document.body.classList.remove('pointer-active','cursor-hover'));
   document.addEventListener('pointerenter',()=>document.body.classList.add('pointer-active'));
  }
+
+ /* Page-specific discovery: searchable experience, writing, and certifications. */
+ function installCollectionTools({cards,insertBefore,title,placeholder,filters,categoryFor,afterFilter}){
+  if(!cards||!cards.length||!insertBefore)return null;
+  const tools=document.createElement('section');tools.className='collection-tools';
+  const label=document.createElement('label');label.className='collection-label';label.textContent=title;label.htmlFor='collection-search-'+Math.random().toString(36).slice(2,7);
+  const input=document.createElement('input');input.type='search';input.id=label.htmlFor;input.className='collection-search';input.placeholder=placeholder;input.autocomplete='off';
+  const filterRow=document.createElement('div');filterRow.className='collection-filter-row';filterRow.setAttribute('role','group');filterRow.setAttribute('aria-label',title+' filters');
+  const count=document.createElement('p');count.className='collection-count';count.setAttribute('aria-live','polite');
+  const filterButtons=[];
+  filters.forEach((filter,i)=>{
+   const button=document.createElement('button');button.type='button';button.className='collection-filter'+(i===0?' active':'');button.dataset.filter=filter.value;button.textContent=filter.label;button.setAttribute('aria-pressed',String(i===0));filterRow.append(button);filterButtons.push(button);
+  });
+  tools.append(label,input,filterRow,count);insertBefore.before(tools);
+  cards.forEach(card=>{card.dataset.collectionCategory=categoryFor(card)||'other';});
+  let chosen='all';
+  const apply=()=>{
+   const query=input.value.trim().toLowerCase();let visible=0;
+   cards.forEach(card=>{
+    const matchesCategory=chosen==='all'||card.dataset.collectionCategory===chosen;
+    const matchesText=!query||card.textContent.toLowerCase().includes(query);
+    const show=matchesCategory&&matchesText;card.hidden=!show;if(show)visible++;
+   });
+   count.textContent=visible+' item'+(visible===1?'':'s')+' shown';
+   filterButtons.forEach(button=>{const active=button.dataset.filter===chosen;button.classList.toggle('active',active);button.setAttribute('aria-pressed',String(active));});
+   if(afterFilter)afterFilter(cards);
+  };
+  filterButtons.forEach(button=>button.addEventListener('click',()=>{chosen=button.dataset.filter||'all';apply();}));
+  input.addEventListener('input',apply);apply();
+  return {tools,input,apply};
+ }
+ const experienceCards=[...document.querySelectorAll('.job,.lead-card')];
+ const timeline=document.querySelector('.timeline');
+ if(timeline&&experienceCards.length){
+  installCollectionTools({
+   cards:experienceCards,insertBefore:timeline,title:'EXPLORE EXPERIENCE & LEADERSHIP',
+   placeholder:'Search roles, organisations or responsibilities…',
+   filters:[{value:'all',label:'Everything'},{value:'internships',label:'Internships'},{value:'community',label:'Community'},{value:'leadership',label:'Campus leadership'}],
+   categoryFor:card=>{
+    if(card.classList.contains('lead-card'))return 'leadership';
+    const type=(card.querySelector('.job-type')?.textContent||'').toLowerCase();
+    if(type.includes('intern'))return 'internships';
+    if(type.includes('community'))return 'community';
+    return 'leadership';
+   },
+   afterFilter:cards=>{
+    document.querySelectorAll('.timeline,.lead-grid').forEach(group=>{
+     const children=[...group.querySelectorAll('.job,.lead-card')];
+     if(children.length)group.hidden=children.every(card=>card.hidden);
+    });
+   }
+  });
+ }
+ const postCards=[...document.querySelectorAll('.post-card')];
+ const postGrid=document.querySelector('.post-grid');
+ if(postGrid&&postCards.length){
+  installCollectionTools({
+   cards:postCards,insertBefore:postGrid,title:'FIND A POST',
+   placeholder:'Search themes, projects or event reflections…',
+   filters:[{value:'all',label:'All writing'},{value:'projects',label:'Projects'},{value:'leadership',label:'Leadership'},{value:'community',label:'Community'},{value:'learning',label:'Learning'}],
+   categoryFor:card=>{
+    const meta=(card.querySelector('.post-meta')?.textContent||'').toLowerCase();
+    if(meta.includes('project'))return 'projects';
+    if(meta.includes('leadership'))return 'leadership';
+    if(meta.includes('community'))return 'community';
+    return 'learning';
+   },
+   afterFilter:cards=>{postGrid.hidden=cards.every(card=>card.hidden);}
+  });
+ }
+ const certCards=[...document.querySelectorAll('.cert-card')];
+ const firstCertHeading=document.querySelector('.cert-group');
+ if(firstCertHeading&&certCards.length){
+  const certGroups=[];
+  document.querySelectorAll('.cert-group').forEach(heading=>{
+   const grid=heading.nextElementSibling;
+   if(!grid?.classList.contains('cert-grid'))return;
+   const category=heading.textContent.replace(/^\s*\d+\s*\/\s*/,'').trim().toLowerCase();
+   grid.dataset.certGroup=category;
+   grid.querySelectorAll('.cert-card').forEach(card=>{card.dataset.certGroup=category;});
+   certGroups.push({heading,grid});
+  });
+  const uniqueCategories=[...new Set(certCards.map(card=>card.dataset.certGroup).filter(Boolean))];
+  const certFilters=[{value:'all',label:'All credentials'},...uniqueCategories.map(value=>({value,label:value.replace(/\b\w/g,c=>c.toUpperCase())}))];
+  installCollectionTools({
+   cards:certCards,insertBefore:firstCertHeading,title:'SEARCH & FILTER CERTIFICATIONS',
+   placeholder:'Search a course, provider or skill…',filters:certFilters,
+   categoryFor:card=>card.dataset.certGroup||'other',
+   afterFilter:cards=>certGroups.forEach(({heading,grid})=>{
+    const empty=[...grid.querySelectorAll('.cert-card')].every(card=>card.hidden);
+    grid.hidden=empty;heading.hidden=empty;
+   })
+  });
+ }
 })();
