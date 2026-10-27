@@ -40,11 +40,11 @@ All interactions are implemented in `assets/main.js` and styled in `assets/style
 - Certification verification links should be added only from their actual credential pages.
 - The portrait stored at `assets/suriyan-profile.jpg` is the existing profile asset; replace it with a higher-resolution original when available.
 
-## Open-source design research
+## Design research references
 
-The interaction approach was informed by public portfolio examples, not copied source code:
+The interaction approach was informed by public portfolio examples; no source code was copied. The MIT-licensed template below was used as an open-source pattern reference, while the other public repositories served as visual research:
 
-- [Naresh-Khatri/3d-portfolio](https://github.com/Naresh-Khatri/3d-portfolio) — MIT-licensed interactive skill-keyboard, cursor, theme and motion ideas.
+- [Naresh-Khatri/3d-portfolio](https://github.com/Naresh-Khatri/3d-portfolio) — **MIT license**; interactive skill-keyboard, custom cursor, themes and motion ideas.
 - [Jonathan-Jesni/portfolio-ver-2](https://github.com/Jonathan-Jesni/portfolio-ver-2) — scroll-driven storytelling and accessible custom-cursor patterns.
 - [KaranChandekar/interactive-3d-portfolio](https://github.com/KaranChandekar/interactive-3d-portfolio) — magnetic cursor, pointer-reactive project cards and project detail-page patterns.
 
