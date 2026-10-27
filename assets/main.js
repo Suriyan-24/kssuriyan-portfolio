@@ -30,54 +30,85 @@ filterButtons.forEach(button=>button.addEventListener('click',()=>{
 }));
 projectSearch?.addEventListener('input',applyProjectFilter);
 
-/* Interactive portfolio lab */
-const terminalOutput=document.querySelector('#terminal-output');
-const terminalResponses={
- about:['Suriyan K.S.','CSE student at KPRIET · Aspiring full-stack developer · AI enthusiast.','I learn by building, testing, and improving.'],
- skills:['Current focus:','Java & DSA · HTML/CSS/JavaScript · Python · SQL · React fundamentals.','I am actively growing these skills through practice and projects.'],
- projects:['Selected work:','M.E.R.I.D.I.A.N — MTC validation · Multi Agri Rover — embedded systems · Student Performance Analysis — Python.','Use the Projects page to explore each project and its available source/demo.'],
- leadership:['Community & leadership:','Ignitrron Treasurer · IEEE CS documentation · student communities and event execution.','I enjoy turning coordination into tangible outcomes.'],
- contact:['Let’s connect:','Email: suriyankumaresan@gmail.com','LinkedIn: linkedin.com/in/suriyan-k-s']
-};
-document.querySelectorAll('[data-command]').forEach(button=>button.addEventListener('click',()=>{
- if(!terminalOutput)return;
- const cmd=button.dataset.command;
- terminalOutput.innerHTML='<p><span class="terminal-prompt">suriyan@portfolio:~$</span> '+cmd+'</p>'+terminalResponses[cmd].map(line=>'<p>'+line.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')+'</p>').join('');
-}));
-document.querySelector('#terminal-clear')?.addEventListener('click',()=>{if(terminalOutput)terminalOutput.innerHTML='<p>Terminal cleared. Choose a command to explore.</p>';});
-const skillData={
- web:{n:'01 / 04',symbol:'</>',title:'Web development',desc:'Building responsive interfaces and connecting frontends to APIs.',tags:'HTML · CSS · JavaScript · React',meter:72},
- java:{n:'02 / 04',symbol:'J',title:'Java & problem solving',desc:'Strengthening core programming, DSA patterns and placement problem-solving.',tags:'Java · DSA · Algorithms',meter:48},
- ai:{n:'03 / 04',symbol:'AI',title:'AI / machine learning',desc:'Exploring practical AI workflows, data preparation and intelligent applications.',tags:'Python · NumPy · Pandas · AI',meter:42},
- systems:{n:'04 / 04',symbol:'{ }',title:'Systems & embedded',desc:'Connecting software logic with sensors, microcontrollers and network fundamentals.',tags:'Arduino · C · Networking',meter:55}
-};
-document.querySelectorAll('[data-skill]').forEach(button=>button.addEventListener('click',()=>{
- const d=skillData[button.dataset.skill];if(!d)return;
- document.querySelectorAll('[data-skill]').forEach(b=>b.classList.toggle('active',b===button));
- const set=(id,value)=>{const el=document.querySelector(id);if(el)el.textContent=value;};
- set('#skill-level',d.n);set('#skill-symbol',d.symbol);set('#skill-title',d.title);set('#skill-description',d.desc);set('#skill-caption',d.tags);
- const fill=document.querySelector('#skill-meter-fill');if(fill)fill.style.width=d.meter+'%';
-}));
-const spotlights=[
- {type:'AUTOMATION / OCR',title:'M.E.R.I.D.I.A.N',desc:'A rule-based compliance engine for Material Test Certificate validation using OCR and structured data processing.',tags:['Python','OCR','Rule engine']},
- {type:'AI / LEARNING',title:'MINDCRAFT',desc:'A gamified learning concept exploring focus, habit-building and personalised progress.',tags:['Learning','Gamification','AI concept']},
- {type:'AGRI / EMBEDDED',title:'MULTI AGRI ROVER',desc:'A student engineering project combining a rover platform, solar power and embedded control; automation was a later phase.',tags:['Arduino','Sensors','Automation']},
- {type:'DATA / PYTHON',title:'STUDENT PERFORMANCE',desc:'Exploratory analysis of student performance using Python data tools to uncover patterns and communicate findings.',tags:['Python','Pandas','NumPy']}
-];
-let activeSpotlight=0;
-function renderSpotlight(i){
- activeSpotlight=(i+spotlights.length)%spotlights.length;const d=spotlights[activeSpotlight];
- const set=(id,value)=>{const el=document.querySelector(id);if(el)el.textContent=value;};
- set('#spotlight-index',String(activeSpotlight+1).padStart(2,'0')+' / '+String(spotlights.length).padStart(2,'0'));
- set('#spotlight-type',d.type);set('#spotlight-title',d.title);set('#spotlight-description',d.desc);
- const tags=document.querySelector('#spotlight-tags');if(tags)tags.innerHTML=d.tags.map(t=>'<span>'+t+'</span>').join('');
- document.querySelectorAll('[data-spotlight]').forEach(b=>b.classList.toggle('active',Number(b.dataset.spotlight)===activeSpotlight));
-}
-document.querySelector('#spotlight-prev')?.addEventListener('click',()=>renderSpotlight(activeSpotlight-1));
-document.querySelector('#spotlight-next')?.addEventListener('click',()=>renderSpotlight(activeSpotlight+1));
-document.querySelectorAll('[data-spotlight]').forEach(b=>b.addEventListener('click',()=>renderSpotlight(Number(b.dataset.spotlight))));
-document.querySelectorAll('[data-step]').forEach(button=>button.addEventListener('click',()=>{
- const n=button.dataset.step;
- document.querySelectorAll('[data-step]').forEach(b=>b.classList.toggle('active',b===button));
- document.querySelectorAll('[data-detail]').forEach(d=>d.classList.toggle('open',d.dataset.detail===n));
-}));
+
+/* Site-wide interactions: command palette, progress, theme, card previews. */
+(function(){
+ const body=document.body;
+ const progress=document.createElement('div');
+ progress.className='reading-progress';
+ progress.setAttribute('aria-hidden','true');
+ document.body.prepend(progress);
+ const toolbar=document.createElement('div');
+ toolbar.className='site-tools';
+ toolbar.innerHTML='<button type="button" class="site-tool" id="open-command" aria-label="Open quick navigation" title="Quick navigation (Ctrl or Command + K)">⌘ K</button><button type="button" class="site-tool theme-toggle" id="theme-toggle" aria-label="Toggle contrast theme" title="Toggle theme">◐</button>';
+ document.querySelector('.site-header')?.append(toolbar);
+ const palette=document.createElement('dialog');
+ palette.className='command-palette';
+ palette.setAttribute('aria-label','Quick navigation');
+ palette.innerHTML='<div class="palette-inner"><div class="palette-head"><span>QUICK NAVIGATION</span><button type="button" id="close-command" aria-label="Close">ESC ✕</button></div><input type="search" id="command-search" placeholder="Jump to a page or section…" autocomplete="off"><div class="command-results" id="command-results"></div><p class="palette-hint">↑ ↓ to browse · Enter to open · Esc to close</p></div>';
+ document.body.append(palette);
+ const commands=[
+  {label:'Home',meta:'Page',url:'index.html'},{label:'Projects',meta:'Explore projects',url:'projects.html'},
+  {label:'Experience & leadership',meta:'Roles and timeline',url:'experience.html'},
+  {label:'LinkedIn posts',meta:'Featured writing',url:'posts.html'},
+  {label:'Certifications',meta:'Courses and credentials',url:'certifications.html'},
+  {label:'Contact Suriyan',meta:'Email',url:'mailto:suriyankumaresan@gmail.com'},
+  {label:'GitHub profile',meta:'Code repositories',url:'https://github.com/Suriyan-24'},
+  {label:'LinkedIn profile',meta:'Professional profile',url:'https://www.linkedin.com/in/suriyan-k-s/'}
+ ];
+ const input=palette.querySelector('#command-search'),results=palette.querySelector('#command-results');
+ let selected=0;
+ function drawCommands(){
+  const q=(input.value||'').toLowerCase().trim();
+  const matches=commands.filter(c=>(c.label+' '+c.meta).toLowerCase().includes(q));
+  if(selected>=matches.length)selected=0;
+  results.innerHTML=matches.map((c,i)=>'<button type="button" class="command-result '+(i===selected?'selected':'')+'" data-url="'+c.url.replace(/"/g,'&quot;')+'"><span><b>'+c.label+'</b><small>'+c.meta+'</small></span><span>↗</span></button>').join('')||'<p class="no-results">No matching destination. Try another search.</p>';
+  results.querySelectorAll('[data-url]').forEach(b=>b.addEventListener('click',()=>{const url=b.dataset.url;if(url.startsWith('mailto:')||url.startsWith('https://'))window.open(url,'_blank','noopener');else window.location.href=url;}));
+ }
+ function openPalette(){if(!palette.open)palette.showModal();input.value='';selected=0;drawCommands();input.focus();}
+ document.querySelector('#open-command')?.addEventListener('click',openPalette);
+ document.querySelector('#close-command')?.addEventListener('click',()=>palette.close());
+ palette.addEventListener('click',e=>{if(e.target===palette)palette.close();});
+ input.addEventListener('input',()=>{selected=0;drawCommands();});
+ input.addEventListener('keydown',e=>{
+  const items=[...results.querySelectorAll('[data-url]')];
+  if(e.key==='ArrowDown'){e.preventDefault();selected=Math.min(selected+1,items.length-1);drawCommands();}
+  if(e.key==='ArrowUp'){e.preventDefault();selected=Math.max(0,selected-1);drawCommands();}
+  if(e.key==='Enter'&&items[selected])items[selected].click();
+ });
+ document.addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='k'){e.preventDefault();openPalette();}});
+ const themeButton=document.querySelector('#theme-toggle');
+ if(themeButton){
+  themeButton.addEventListener('click',()=>{
+   const light=body.classList.toggle('soft-light');
+   themeButton.textContent=light?'☼':'◐';
+   themeButton.setAttribute('aria-label',light?'Switch to dark theme':'Switch to soft light theme');
+  });
+ }
+ let scheduled=false;
+ function updateProgress(){
+  const max=document.documentElement.scrollHeight-window.innerHeight;
+  progress.style.width=(max>0?window.scrollY/max*100:0)+'%';
+  scheduled=false;
+ }
+ window.addEventListener('scroll',()=>{if(!scheduled){window.requestAnimationFrame(updateProgress);scheduled=true;}},{passive:true});
+ updateProgress();
+ document.querySelectorAll('.project-card,.job,.lead-card,.cert-card,.post-card').forEach(card=>{
+  card.setAttribute('tabindex','0');
+  card.setAttribute('role','button');
+  card.setAttribute('aria-label','Expand details: '+(card.querySelector('h3')?.textContent||'portfolio item'));
+  const toggle=()=>{
+   const expanded=card.classList.toggle('details-expanded');
+   card.setAttribute('aria-expanded',String(expanded));
+  };
+  card.addEventListener('click',e=>{
+   if(e.target.closest('a,button,input'))return;
+   toggle();
+  });
+  card.addEventListener('keydown',e=>{if((e.key==='Enter'||e.key===' ')&&e.target===card){e.preventDefault();toggle();}});
+ });
+ document.querySelectorAll('.nav a,.button,.highlight-card,.project-links a,.social-row a').forEach(link=>{
+  link.addEventListener('pointerdown',()=>link.classList.add('is-pressed'));
+  ['pointerup','pointerleave','blur'].forEach(type=>link.addEventListener(type,()=>link.classList.remove('is-pressed')));
+ });
+})();
