@@ -61,10 +61,11 @@ if(heroVisual&&heroCanvas){
    }
    if(!once&&!reduced){raf=requestAnimationFrame(drawHeroCanvas);}
   }
-  heroCanvas.addEventListener('pointermove',e=>{const box=heroCanvas.getBoundingClientRect();pointer.x=e.clientX-box.left;pointer.y=e.clientY-box.top;pointer.active=true;},{passive:true});
-  heroCanvas.addEventListener('pointerleave',()=>{pointer.active=false;pointer.x=-1000;pointer.y=-1000;},{passive:true});
+  heroCanvas.addEventListener('pointermove',e=>{const box=heroCanvas.getBoundingClientRect();pointer.x=e.clientX-box.left;pointer.y=e.clientY-box.top;pointer.active=true;const px=(pointer.x/Math.max(1,w)-.5),py=(pointer.y/Math.max(1,h)-.5);heroVisual.style.setProperty('--hero-tilt-x',(px*4).toFixed(2)+'deg');heroVisual.style.setProperty('--hero-tilt-y',(-py*3).toFixed(2)+'deg');},{passive:true});
+  heroCanvas.addEventListener('pointerleave',()=>{pointer.active=false;pointer.x=-1000;pointer.y=-1000;heroVisual.style.setProperty('--hero-tilt-x','0deg');heroVisual.style.setProperty('--hero-tilt-y','0deg');},{passive:true});
   window.addEventListener('resize',()=>{cancelAnimationFrame(raf);resizeHeroCanvas();},{passive:true});
   resizeHeroCanvas();
+  if(!reduced)raf=requestAnimationFrame(drawHeroCanvas);
  }
 }
 const io=('IntersectionObserver'in window)?new IntersectionObserver(entries=>entries.forEach(e=>{if(e.isIntersecting){e.target.classList.add('visible');io.unobserve(e.target)}}),{threshold:.08}):null;
