@@ -1,8 +1,72 @@
 const menu=document.querySelector('.menu-toggle'),nav=document.querySelector('.nav');
 if(menu&&nav){menu.setAttribute('aria-expanded','false');menu.addEventListener('click',()=>{const open=nav.classList.toggle('open');menu.setAttribute('aria-expanded',String(open));});}
-// Keep the hero visually complete when the local portrait cannot be loaded.
+// Prefer the local headshot, then use the public repository copy before showing a fallback.
 const portrait=document.querySelector('.portrait');
-if(portrait){portrait.addEventListener('error',()=>{portrait.alt='Animated Suriyan K.S. monogram portrait';portrait.closest('.orbit')?.classList.add('portrait-fallback');},{once:true});if(portrait.complete&&portrait.naturalWidth===0){portrait.closest('.orbit')?.classList.add('portrait-fallback');}}
+if(portrait){
+ const handlePortraitError=()=>{
+  if(portrait.dataset.remoteTried!=='1'&&portrait.dataset.remoteSrc){
+   portrait.dataset.remoteTried='1';portrait.src=portrait.dataset.remoteSrc;return;
+  }
+  portrait.closest('.profile-visual')?.classList.add('photo-missing');
+ };
+ portrait.addEventListener('error',handlePortraitError);
+ if(portrait.complete&&portrait.naturalWidth===0)handlePortraitError();
+}
+// Hero focus chips and pointer-reactive canvas.
+const heroVisual=document.querySelector('#profile-visual'),heroCanvas=document.querySelector('#hero-particles');
+const heroFocusLabel=document.querySelector('#focus-label');
+const heroFocusModes={java:'JAVA & DSA',web:'FULL-STACK DEVELOPMENT',ai:'APPLIED AI / ML'};
+function setHeroFocus(mode){
+ if(!heroFocusModes[mode])return;
+ if(heroFocusLabel)heroFocusLabel.textContent=heroFocusModes[mode];
+ document.querySelectorAll('[data-hero-chip]').forEach(btn=>{
+  const active=btn.dataset.heroChip===mode;btn.classList.toggle('active',active);btn.setAttribute('aria-pressed',String(active));
+ });
+}
+document.querySelectorAll('[data-hero-chip]').forEach(btn=>btn.addEventListener('click',()=>setHeroFocus(btn.dataset.heroChip)));
+setHeroFocus('web');
+if(heroVisual&&heroCanvas){
+ const ctx=heroCanvas.getContext('2d');
+ if(ctx){
+  let w=1,h=1,dpr=1,raf=0,last=0,particles=[];
+  const reduced=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const pointer={x:-1000,y:-1000,active:false};
+  function resizeHeroCanvas(){
+   const box=heroVisual.getBoundingClientRect();w=Math.max(1,box.width);h=Math.max(1,box.height);dpr=Math.min(window.devicePixelRatio||1,1.5);
+   heroCanvas.width=Math.floor(w*dpr);heroCanvas.height=Math.floor(h*dpr);heroCanvas.style.width=w+'px';heroCanvas.style.height=h+'px';ctx.setTransform(dpr,0,0,dpr,0,0);
+   const amount=window.innerWidth<640?24:48;
+   particles=Array.from({length:amount},()=>({x:Math.random()*w,y:Math.random()*h,vx:(Math.random()-.5)*.16,vy:(Math.random()-.5)*.16,r:1+Math.random()*1.6,phase:Math.random()*Math.PI*2}));
+   drawHeroCanvas(performance.now(),true);
+  }
+  function drawHeroCanvas(now,once=false){
+   if(!ctx)return;
+   const light=document.body.classList.contains('soft-light');
+   const ink=light?'102,143,0':'200,255,61';
+   ctx.clearRect(0,0,w,h);
+   const glow=ctx.createRadialGradient(pointer.x,pointer.y,0,pointer.x,pointer.y,260);
+   if(pointer.active){glow.addColorStop(0,light?'rgba(102,143,0,.09)':'rgba(200,255,61,.11)');glow.addColorStop(1,'rgba(0,0,0,0)');ctx.fillStyle=glow;ctx.fillRect(0,0,w,h);}
+   for(let i=0;i<particles.length;i++){
+    const p=particles[i];
+    if(!once&&!reduced){
+     p.x+=p.vx;p.y+=p.vy;p.phase+=.009;
+     if(p.x<0||p.x>w)p.vx*=-1;if(p.y<0||p.y>h)p.vy*=-1;
+     if(pointer.active){const dx=p.x-pointer.x,dy=p.y-pointer.y,dist=Math.hypot(dx,dy);if(dist<105&&dist>0){p.x+=(dx/dist)*.16;p.y+=(dy/dist)*.16;}}
+    }
+    const alpha=.25+.25*(Math.sin(p.phase)+1)/2;
+    ctx.fillStyle='rgba('+ink+','+alpha+')';ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.fill();
+    for(let j=i+1;j<particles.length;j++){
+     const q=particles[j],distance=Math.hypot(p.x-q.x,p.y-q.y);
+     if(distance<88){ctx.strokeStyle='rgba('+ink+','+((1-distance/88)*.12)+')';ctx.lineWidth=.7;ctx.beginPath();ctx.moveTo(p.x,p.y);ctx.lineTo(q.x,q.y);ctx.stroke();}
+    }
+   }
+   if(!once&&!reduced){raf=requestAnimationFrame(drawHeroCanvas);}
+  }
+  heroCanvas.addEventListener('pointermove',e=>{const box=heroCanvas.getBoundingClientRect();pointer.x=e.clientX-box.left;pointer.y=e.clientY-box.top;pointer.active=true;},{passive:true});
+  heroCanvas.addEventListener('pointerleave',()=>{pointer.active=false;pointer.x=-1000;pointer.y=-1000;},{passive:true});
+  window.addEventListener('resize',()=>{cancelAnimationFrame(raf);resizeHeroCanvas();},{passive:true});
+  resizeHeroCanvas();
+ }
+}
 const io=('IntersectionObserver'in window)?new IntersectionObserver(entries=>entries.forEach(e=>{if(e.isIntersecting){e.target.classList.add('visible');io.unobserve(e.target)}}),{threshold:.08}):null;
 document.querySelectorAll('.reveal').forEach(el=>io?io.observe(el):el.classList.add('visible'));
 document.querySelectorAll('a[href^="#"]').forEach(a=>a.addEventListener('click',()=>nav?.classList.remove('open')));
@@ -185,6 +249,15 @@ projectSearch?.addEventListener('input',applyProjectFilter);
    button.addEventListener('pointerleave',()=>{button.style.translate='0px 0px';});
   });
  }
+ /* Short, graceful transitions between the site's HTML pages. */
+ const pageCurtain=document.createElement('div');pageCurtain.className='page-curtain';pageCurtain.setAttribute('aria-hidden','true');document.body.append(pageCurtain);
+ document.addEventListener('click',event=>{
+  const link=event.target.closest('a[href]');if(!link||event.defaultPrevented||event.button!==0||event.metaKey||event.ctrlKey||event.shiftKey||event.altKey||link.target==='_blank'||link.hasAttribute('download'))return;
+  let url;try{url=new URL(link.href,window.location.href);}catch(_){return;}
+  if(url.origin!==window.location.origin||!(/\.html$/i.test(url.pathname))||url.href===window.location.href)return;
+  event.preventDefault();document.body.classList.add('page-leaving');
+  window.setTimeout(()=>window.location.assign(url.href),200);
+ });
  /* Theme-matched cursor with a glowing aura and lightweight fading trail. */
  const finePointer=window.matchMedia('(hover: hover) and (pointer: fine)').matches;
  const reduceMotion=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
